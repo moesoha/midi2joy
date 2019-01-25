@@ -1,7 +1,7 @@
 use winapi::{shared::{minwindef::{BOOL,UCHAR,UINT,INT,BYTE},ntdef::{SHORT}},um::xinput::XINPUT_VIBRATION};
 
 #[allow(non_camel_case_types)]
-#[link(name="vXboxInterface")]
+#[link(name="vXboxInterface", kind="static")]
 extern {
 	// Status
 	fn isVBusExists()->BOOL;
