@@ -1,0 +1,11 @@
+[package]
+name = "midi2joy"
+version = "0.1.0"
+authors = ["Soha Jin <soha@lohu.info>"]
+edition = "2018"
+
+[dependencies]
+midir = "0.5.0"
+
+[dependencies.virtual-xbox-interface]
+path = "virtual-xbox-interface"

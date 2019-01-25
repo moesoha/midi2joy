@@ -1,0 +1,10 @@
+[package]
+name = "virtual-xbox-interface"
+version = "0.1.0"
+authors = ["Soha Jin <soha@lohu.info>"]
+edition = "2018"
+script = "build.rs"
+
+[dependencies]
+libc = "0.2.48"
+winapi = { version = "0.3.6", features = [ "xinput" ] }
