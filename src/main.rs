@@ -32,30 +32,54 @@ fn main() {
 	print!("Port# ");
 	stdout().flush().unwrap();
 	let midi_port_out:usize=read!();
-
-	let mut btns=HashMap::new();
-	for b in get_buttons(){
-		btns.insert(b.id,b.clone());
-	}
-	dbg!(&btns);
-
-	midi_in.ignore(midir::Ignore::None);
-	let mut _conn_in=midi_in.connect(midi_port_in, "m2j_in", move |stamp, message, btns| {
-		println!("dbg: {}: {:?} (len = {})", stamp, message, message.len());
-		if message[0] == 144{ // Launchpad Mini keys
-			let event_key:usize=message[1] as usize;
-			// let 
-			if !btns.contains_key(&event_key){
-				return;
-			}
-			let btn=btns[&event_key].clone();
-			if !btn.persist{
-				btn.joystick_button.press(btn.joystick_id,message[2]!=0);
-			}
-		}
-	}, btns).unwrap();
 	let mut midi_out=midi_out.connect(midi_port_out, "m2j_out").unwrap();
 	midi_out.send(&vec![0x90, 0, 16*3+0+12]).unwrap();
+
+	let mut btns=HashMap::new();
+	let mut btn_persistence=HashMap::new();
+	for b in get_buttons(){
+		btns.insert(b.id,b.clone());
+		if b.persist{
+			btn_persistence.insert(b.id, vec![0, 0]);
+		}
+		b.color.set_key_brightness(&mut midi_out, b.id as u8, 1);
+	}
+
+	midi_in.ignore(midir::Ignore::None);
+	let mut _conn_in=midi_in.connect(midi_port_in, "m2j_in", move |stamp, message, _| {
+		println!("dbg: {}: {:?} (len = {})", stamp, message, message.len());
+		if message[0] == 144{ // Launchpad Mini keys
+			let key:usize=message[1] as usize;
+			let value:usize=message[2] as usize;
+			if !btns.contains_key(&key){
+				return;
+			}
+			let btn=&btns[&key];
+			if !btn.persist{
+				let mut brightness:u8=1;
+				let pressed:bool=message[2]!=0;
+				if pressed {
+					brightness=3;
+				}
+				btn.joystick_button.press(btn.joystick_id,pressed);
+				btn.color.set_key_brightness(&mut midi_out, btn.id as u8, brightness);
+			} else {
+				let pers=&btn_persistence[&key];
+				if stamp-pers[0]>200000{
+					if pers[1]!=0{
+						btn.joystick_button.press(btn.joystick_id,false);
+						btn.color.set_key_brightness(&mut midi_out, btn.id as u8, 1);
+						btn_persistence.insert(key, vec![stamp, 0]);
+					} else {
+						btn.joystick_button.press(btn.joystick_id,true);
+						btn.color.set_key_brightness(&mut midi_out, btn.id as u8, 3);
+						btn_persistence.insert(key, vec![stamp, 1]);
+					}
+				}
+				dbg!(&btn_persistence);
+			}
+		}
+	}, ()).unwrap();
 	println!("Connected!");
 
 	let _:String=read!();
@@ -65,11 +89,8 @@ fn main() {
 
 fn get_buttons()->Vec<config::ButtonConfig>{
 	let mut btns:Vec<config::ButtonConfig>=Vec::new();
-	btns.push(config::ButtonConfig::new(0,true,1,Button::A,Color::Green));
-	btns.push(config::ButtonConfig::new(16,false,1,Button::X,Color::Red));
+	btns.push(config::ButtonConfig::new(0,false,1,Button::A,Color::Green));
+	btns.push(config::ButtonConfig::new(16,true,1,Button::X,Color::Red));
 	btns
 }
 
-fn get_led_value(c:Color)->usize{
-	1
-}

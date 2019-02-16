@@ -6,6 +6,15 @@ pub enum Color{
 	Green=2,
 	Yellow=3
 }
+impl Color{
+	pub fn set_key_brightness(&self, midi_out: &mut midir::MidiOutputConnection, key: u8, brightness: u8)->(){
+		match self{
+			Color::Red=>midi_out.send(&vec![0x90, key, brightness+12]).unwrap(),
+			Color::Green=>midi_out.send(&vec![0x90, key, 16*brightness+0+12]).unwrap(),
+			Color::Yellow=>midi_out.send(&vec![0x90, key, 16*brightness+brightness+12]).unwrap(),
+		}
+	}
+}
 
 #[derive(Debug,Clone)]
 pub enum Button{
@@ -24,9 +33,17 @@ pub enum Button{
 impl Button{
 	pub fn press(&self, port: usize, toggle: bool)->(){
 		match self{
-			A=>virtual_xbox_interface::set_button_a(port, toggle).unwrap(),
-			X=>virtual_xbox_interface::set_button_x(port, toggle).unwrap(),
-			_n=>()
+			Button::A=>virtual_xbox_interface::set_button_a(port, toggle).unwrap(),
+			Button::B=>virtual_xbox_interface::set_button_b(port, toggle).unwrap(),
+			Button::X=>virtual_xbox_interface::set_button_x(port, toggle).unwrap(),
+			Button::Y=>virtual_xbox_interface::set_button_y(port, toggle).unwrap(),
+			Button::Start=>virtual_xbox_interface::set_button_start(port, toggle).unwrap(),
+			Button::Back=>virtual_xbox_interface::set_button_back(port, toggle).unwrap(),
+			Button::LT=>virtual_xbox_interface::set_button_lt(port, toggle).unwrap(),
+			Button::RT=>virtual_xbox_interface::set_button_rt(port, toggle).unwrap(),
+			Button::LB=>virtual_xbox_interface::set_button_lb(port, toggle).unwrap(),
+			Button::RB=>virtual_xbox_interface::set_button_rb(port, toggle).unwrap(),
+			Button::GD=>virtual_xbox_interface::set_button_gd(port, toggle).unwrap()
 		}
 	}
 }
