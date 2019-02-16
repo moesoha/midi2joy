@@ -45,7 +45,7 @@ type Result<T>=std::result::Result<T,Error>;
 
 macro_rules! generate_result_fn {
 	($fun:ident, $ext:ident, $($var:ident: $rust_type:ty => $c_type:ty), *) => {
-		pub fn $fun(user_index: u32, $($var: $rust_type), *)->Result<()>{
+		pub fn $fun(user_index: usize, $($var: $rust_type), *)->Result<()>{
 			if let 0=unsafe{
 				$ext(user_index as UINT, $($var as $c_type), *)
 			}{
@@ -58,7 +58,7 @@ macro_rules! generate_result_fn {
 }
 macro_rules! generate_ptr_result_fn {
 	($fun:ident, $ext:ident, $return_type:ty, $initialize_data:expr) => {
-		pub fn $fun(user_index: u32)->Result<$return_type>{
+		pub fn $fun(user_index: usize)->Result<$return_type>{
 			let mut data: $return_type=$initialize_data;
 			if let 0=unsafe{
 				$ext(user_index as UINT, &mut data)
@@ -82,8 +82,8 @@ pub fn get_num_empty_bus_slots()->Result<u8>{
 		Ok(slots)
 	}
 }
-pub fn is_controller_exists(user_index: u32)->bool{unsafe{isControllerExists(user_index as UINT)!=0}}
-pub fn is_controller_owned(user_index: u32)->bool{unsafe{isControllerOwned(user_index as UINT)!=0}}
+pub fn is_controller_exists(user_index: usize)->bool{unsafe{isControllerExists(user_index as UINT)!=0}}
+pub fn is_controller_owned(user_index: usize)->bool{unsafe{isControllerOwned(user_index as UINT)!=0}}
 
 // Virtual device Plug-In/Unplug
 generate_result_fn!(plug, PlugIn,);
